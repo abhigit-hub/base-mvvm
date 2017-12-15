@@ -1,0 +1,64 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.0-alpha01'
+        classpath 'com.google.gms:google-services:3.1.0'
+        
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+// Define versions in a single place
+ext {
+    // Sdk and tools
+    minSdkVersion = 16
+    targetSdkVersion = 26
+    compileSdkVersion = 26
+    buildToolsVersion = '26.0.1'
+
+    // App dependencies
+    supportLibraryVersion = '27.0.0'
+    constraintLayout = '1.0.2'
+    gsonVersion = '2.8.0'
+    calligraphyVersion = '2.2.0'
+    glideVersion = '3.7.0'
+    playServicesAuthVersion = '11.6.0'
+
+
+    dagger2Version = '2.11'
+    butterKnifeVersion = '8.6.0'
+    rxjava2Version = '2.1.6'
+    rxandroidVersion = '2.0.1'
+    debugDBVersion = '1.0.0'
+    timberVersion = '4.5.1'
+    retrofitVersion = '2.3.0'
+    retrofit2Rxjava2AdapterVersion = '2.3.0'
+    okHttpVersion = '3.9.0'
+    roomVersion = '1.0.0'
+    lifecycle = '1.0.0'
+
+    //Test dependencies
+    junitVersion = '4.12'
+    espressoVersion = '2.2.2'
+    mockitoVersion = '2.7.1'
+}

@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportHeight="32.0"
+    android:viewportWidth="32.0">
+
+    <group
+        android:name="two_arrow"
+        android:pivotX="16"
+        android:pivotY="16"
+        android:rotation="0">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M16,4C10.89,4 6.62,7.16 4.88,11.63L6.72,12.38C8.18,8.64 11.71,6 16,6C19.24,6 22.13,7.59 23.94,10L20,10L20,12L27,12L27,5L25,5L25,8.09C22.81,5.58 19.57,4 16,4ZM25.28,19.63C23.82,23.36 20.29,26 16,26C12.72,26 9.84,24.39 8.03,22L12,22L12,20L5,20L5,27L7,27L7,23.91C9.19,26.39 12.39,28 16,28C21.11,28 25.38,24.84 27.13,20.38Z" />
+    </group>
+</vector>

@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Base MVVM</string>
+    <string name="app_market_link">market://details?id=</string>
+    <string name="app_google_playstore_link">https://play.google.com/store/apps/details?id=</string>
+    <string name="some_error">Some Error Occurred!</string>
+    <string name="login">login</string>
+    <string name="Email">Email</string>
+    <string name="Password">Password</string>
+    <string name="google_log_in">Log in With Google</string>
+    <string name="facebook_log_in">Log in With Facebook</string>
+    <string name="empty_email">Please provide a non empty email.</string>
+    <string name="invalid_email">Please provide a valid email.</string>
+    <string name="empty_password">Please provide a non empty password.</string>
+    <string name="base_mvvm">Base-MVVM</string>
+    <string name="feed">Feed</string>
+    <string name="logout">Logout</string>
+    <string name="cut">Cut</string>
+    <string name="version">version</string>
+    <string name="open_drawer">Open Drawer</string>
+    <string name="close_drawer">Close Drawer</string>
+    <string name="blog">Blog</string>
+    <string name="open_source">Open Source</string>
+
+    <string name="empty_screen">We do not have anything\nhere right now.</string>
+    <string name="please_retry">Please Retry</string>
+    <string name="retry">Retry</string>
+    <string name="blog_details">Blog Details</string>
+    <string name="open_in_browser">Open in Browser</string>
+    <string name="open_source_details">Open Source Details</string>
+
+
+
+    //Facebook Strings
+    <string name="facebook_app_id">373267699785504</string>
+    <string name="fb_login_protocol_scheme">fb373267699785504</string>
+
+
+    <string name="my_feed">My Feed</string>
+    <string name="signing_in">Signing in</string>
+    <string name="server_sign_in_failed">Server Sign In Failed</string>
+    <string name="facebook_sign_in_successful">Facebook Sign in Successful</string>
+    <string name="google_sign_in_successful">Google Sign in Successful</string>
+    <string name="google_sign_in_failed">Google Sign in Failed</string>
+    <string name="cannnot_initiate_sign_in">Error: Cannot initiate Sign in</string>
+    <string name="no_internet">No Internet</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="logging_you_out">Logging you out</string>
+    <string name="there_was_an_error_logout">There was an error while logging you out</string>
+    <string name="could_not_fetch_items">Could not fetch items</string>
+    <string name="could_not_show_items">Could not show items</string>
+    <string name="updated_items">Updated items</string>
+    <string name="showing_stale_items">Showing Stale Items</string>
+    <string name="there_was_an_error_display_blog">There was an error displaying Blog Details</string>
+    <string name="there_was_an_error_display_open_source">There was an error displaying Open Source Details</string>
+</resources>
