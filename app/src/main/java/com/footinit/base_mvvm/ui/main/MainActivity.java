@@ -1,7 +1,6 @@
 package com.footinit.base_mvvm.ui.main;
 
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Animatable;
@@ -26,8 +25,6 @@ import android.widget.TextView;
 
 import com.footinit.base_mvvm.BuildConfig;
 import com.footinit.base_mvvm.R;
-import com.footinit.base_mvvm.data.db.model.Blog;
-import com.footinit.base_mvvm.data.db.model.OpenSource;
 import com.footinit.base_mvvm.data.db.model.User;
 import com.footinit.base_mvvm.ui.base.BaseActivity;
 import com.footinit.base_mvvm.ui.custom.CustomSwipeToRefresh;
@@ -38,7 +35,6 @@ import com.footinit.base_mvvm.ui.main.feed.FeedActivity;
 import com.footinit.base_mvvm.ui.main.opensource.OSFragment;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -56,6 +52,8 @@ public class MainActivity extends BaseActivity<MainViewModel>
         implements Interactor.Blog, Interactor.OpenSource, HasSupportFragmentInjector {
 
     private boolean isCallbackSet = false;
+
+    private boolean blogRefreshFlag, openSourceRefreshFlag;
 
     private Menu menu;
 
@@ -155,7 +153,7 @@ public class MainActivity extends BaseActivity<MainViewModel>
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mainViewModel.onRefreshNetworkCall();
+                refresh();
                 startRefreshIconAnimation();
             }
         });
@@ -175,30 +173,12 @@ public class MainActivity extends BaseActivity<MainViewModel>
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
-
-    //SET-UP : CALLBACK FROM FRAGMENTS
-    private void setUpCallbacks() {
-        for (int i = 0; i < pagerAdapter.getCount(); i++) {
-            WeakReference<Fragment> fragment = pagerAdapter.getRegisteredFragments().get(i);
-
-            if (fragment != null) {
-                if (fragment.get() instanceof BlogFragment) {
-                    ((BlogFragment) fragment.get()).setParentCallBack(this);
-                } else if (fragment.get() instanceof OSFragment) {
-                    ((OSFragment) fragment.get()).setParentCallBack(this);
-                }
-            }
-
-            fragment = null;
-        }
-    }
-
-    private boolean isCallbackSet() {
-        return isCallbackSet;
-    }
-
-
     //CALLBACKS FROM FRAGMENTS
+    private void refresh() {
+        onBlogListReFetched();
+        onOpenSourceListReFetched();
+    }
+
     @Override
     public void onBlogListReFetched() {
         WeakReference<Fragment> fragmentWeakReference =
@@ -211,13 +191,9 @@ public class MainActivity extends BaseActivity<MainViewModel>
     }
 
     @Override
-    public void onBlogCallBackAdded() {
-        isCallbackSet = true;
-    }
-
-    @Override
-    public void onBlogCallBackRemoved() {
-        isCallbackSet = false;
+    public void updateSwipeRefreshLayoutOne(boolean isVisible) {
+        blogRefreshFlag = isVisible;
+        checkRefreshFlag();
     }
 
     @Override
@@ -232,13 +208,19 @@ public class MainActivity extends BaseActivity<MainViewModel>
     }
 
     @Override
-    public void onOpenSourceCallBackAdded() {
-        isCallbackSet = true;
+    public void updateSwipeRefreshLayoutTwo(boolean isVisible) {
+        openSourceRefreshFlag = isVisible;
+        checkRefreshFlag();
     }
 
-    @Override
-    public void onOpenSourceCallBackRemoved() {
-        isCallbackSet = false;
+    private void checkRefreshFlag() {
+        if (!blogRefreshFlag && !openSourceRefreshFlag) {
+            updateSwipeRefreshLayout(false);
+            resetAllAdapterPositions();
+            showToast(getString(R.string.updated_items));
+        } else {
+            updateSwipeRefreshLayout(true);
+        }
     }
 
 
@@ -289,12 +271,6 @@ public class MainActivity extends BaseActivity<MainViewModel>
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
-
-                if (pagerAdapter.getRegisteredFragments() != null
-                        && pagerAdapter.getRegisteredFragments().size() > 0) {
-                    if (!isCallbackSet())
-                        setUpCallbacks();
-                }
             }
 
             @Override
@@ -313,30 +289,6 @@ public class MainActivity extends BaseActivity<MainViewModel>
     //OBSERVE EVENTS FROM VIEW-MODEL
     private void observeAllEvents() {
         //EVENT (transmit DATA)
-        mainViewModel.getPullToRefreshEvent().observe(this,
-                new Observer<Boolean>() {
-                    @Override
-                    public void onChanged(@Nullable Boolean status) {
-                        updateSwipeRefreshLayout(status);
-                    }
-                });
-
-        mainViewModel.getBlogList().observe(this,
-                new Observer<List<Blog>>() {
-                    @Override
-                    public void onChanged(@Nullable List<Blog> blogList) {
-                        updateBlogList(blogList);
-                    }
-                });
-
-        mainViewModel.getOpenSourceList().observe(this,
-                new Observer<List<OpenSource>>() {
-                    @Override
-                    public void onChanged(@Nullable List<OpenSource> openSourceList) {
-                        updateOpenSourceList(openSourceList);
-                    }
-                });
-
         mainViewModel.getUser().observe(this,
                 new Observer<User>() {
                     @Override
@@ -347,14 +299,6 @@ public class MainActivity extends BaseActivity<MainViewModel>
 
 
         //EVENT
-        mainViewModel.getResetAllAdapterEvent().observe(this,
-                new Observer<Void>() {
-                    @Override
-                    public void onChanged(@Nullable Void aVoid) {
-                        resetAllAdapterPositions();
-                    }
-                });
-
         mainViewModel.getOpenLoginActivityEvent().observe(this,
                 new Observer<Void>() {
                     @Override
@@ -414,30 +358,6 @@ public class MainActivity extends BaseActivity<MainViewModel>
         refreshLayout.setRefreshing(isVisible);
     }
 
-    public void updateBlogList(List<Blog> blogList) {
-        if (blogList != null) {
-            WeakReference<Fragment> fragment = pagerAdapter.getRegisteredFragments().get(0);
-
-            if (fragment != null && fragment.get() instanceof BlogFragment) {
-                ((BlogFragment) fragment.get()).updateBlogList(blogList);
-            }
-
-            fragment = null;
-        }
-    }
-
-    public void updateOpenSourceList(List<OpenSource> openSourceList) {
-        if (openSourceList != null) {
-            WeakReference<Fragment> fragment = pagerAdapter.getRegisteredFragments().get(1);
-
-            if (fragment != null && fragment.get() instanceof OSFragment) {
-                ((OSFragment) fragment.get()).updateOSList(openSourceList);
-            }
-
-            fragment = null;
-        }
-    }
-
     public void updateUserViews(User user) {
         if (user != null) {
             if (user.getUserName() != null)
@@ -481,7 +401,7 @@ public class MainActivity extends BaseActivity<MainViewModel>
 
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                mainViewModel.onRefreshNetworkCall();
+                refresh();
                 return true;
             default:
                 return onOptionsItemSelected(item);

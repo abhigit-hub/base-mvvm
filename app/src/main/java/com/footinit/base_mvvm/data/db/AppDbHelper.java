@@ -1,6 +1,8 @@
 package com.footinit.base_mvvm.data.db;
 
 
+import android.arch.lifecycle.LiveData;
+
 import com.footinit.base_mvvm.data.db.model.Blog;
 import com.footinit.base_mvvm.data.db.model.OpenSource;
 import com.footinit.base_mvvm.data.db.model.User;
@@ -30,7 +32,6 @@ public class AppDbHelper implements DbHelper {
     }
 
 
-
     //USER
     @Override
     public Observable<Long> insertUser(final User user) {
@@ -58,8 +59,6 @@ public class AppDbHelper implements DbHelper {
     }
 
 
-
-
     //BLOG
     @Override
     public Observable<Long> insertBlog(final Blog blog) {
@@ -72,8 +71,13 @@ public class AppDbHelper implements DbHelper {
     }
 
     @Override
-    public Observable<List<Blog>> getBlogList() {
-        return Observable.fromCallable(() -> appDatabase.blogDao().getBlogList());
+    public LiveData<List<Blog>> getBlogList() {
+        return appDatabase.blogDao().getBlogList();
+    }
+
+    @Override
+    public Observable<List<Blog>> getBlogListObservable() {
+        return Observable.fromCallable(() -> appDatabase.blogDao().getBlogListObservable());
     }
 
     @Override
@@ -85,8 +89,6 @@ public class AppDbHelper implements DbHelper {
     public Completable wipeBlogData() {
         return Completable.fromAction(() -> appDatabase.blogDao().nukeBlogTable());
     }
-
-
 
 
     //OPEN SOURCE
@@ -101,8 +103,13 @@ public class AppDbHelper implements DbHelper {
     }
 
     @Override
-    public Observable<List<OpenSource>> getOpenSourceList() {
-        return Observable.fromCallable(() -> appDatabase.openSourceDao().getOpenSourceList());
+    public LiveData<List<OpenSource>> getOpenSourceList() {
+        return appDatabase.openSourceDao().getOpenSourceList();
+    }
+
+    @Override
+    public Observable<List<OpenSource>> getOpenSourceListObservable() {
+        return Observable.fromCallable(() -> appDatabase.openSourceDao().getOpenSourceListObservable());
     }
 
     @Override

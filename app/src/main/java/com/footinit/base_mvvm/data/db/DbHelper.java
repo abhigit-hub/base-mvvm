@@ -1,5 +1,7 @@
 package com.footinit.base_mvvm.data.db;
 
+import android.arch.lifecycle.LiveData;
+
 import com.footinit.base_mvvm.data.db.model.Blog;
 import com.footinit.base_mvvm.data.db.model.OpenSource;
 import com.footinit.base_mvvm.data.db.model.User;
@@ -28,7 +30,9 @@ public interface DbHelper {
 
     Observable<List<Long>> insertBlogList(List<Blog> blogList);
 
-    Observable<List<Blog>> getBlogList();
+    LiveData<List<Blog>> getBlogList();
+
+    Observable<List<Blog>> getBlogListObservable();
 
     Observable<Long> getBlogRecordCount();
 
@@ -40,7 +44,9 @@ public interface DbHelper {
 
     Observable<List<Long>> insertOpenSourceList(List<OpenSource> openSourceList);
 
-    Observable<List<OpenSource>> getOpenSourceList();
+    LiveData<List<OpenSource>> getOpenSourceList();
+
+    Observable<List<OpenSource>> getOpenSourceListObservable();
 
     Observable<Long> getOpenSourceRecordCount();
 

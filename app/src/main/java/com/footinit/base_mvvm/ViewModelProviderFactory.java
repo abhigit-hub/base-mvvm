@@ -3,12 +3,6 @@ package com.footinit.base_mvvm;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 
-/**
- * Created by RV on 19/07/17.
- * <p>
- * A provider factory that persists ViewModels{@link ViewModel}.
- * Used if the viewmodel has a parameterized constructor.
- */
 public class ViewModelProviderFactory<V> implements ViewModelProvider.Factory {
 
     private V viewModel;

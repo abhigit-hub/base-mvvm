@@ -3,6 +3,7 @@ package com.footinit.base_mvvm.ui.main.blog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -58,11 +59,6 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
         return fragment;
     }
 
-    public void setParentCallBack(Interactor.Blog callback) {
-        this.callback = callback;
-        this.callback.onBlogCallBackAdded();
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -114,6 +110,15 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
                     }
                 });
 
+        blogViewModel.getPullToRefreshEvent().observe(this,
+                new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(@Nullable Boolean isVisible) {
+                        if (callback != null)
+                            callback.updateSwipeRefreshLayoutOne(isVisible);
+                    }
+                });
+
         blogViewModel.getBlogListReFetched().observe(this,
                 new Observer<Void>() {
                     @Override
@@ -128,12 +133,6 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
         blogAdapter.updateListItems(blogList);
     }
 
-
-    //This method call comes in from MainActivity
-    public void updateBlogList(List<Blog> blogList) {
-        blogViewModel.onUpdateBlogList(blogList);
-    }
-
     //This method call comes in from MainActivity
     public void setListScrollTop() {
         linearLayoutManager.scrollToPositionWithOffset(0, 0);
@@ -143,8 +142,6 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
     public void onParentCallToFetchList() {
         blogViewModel.fetchBlogList();
     }
-
-
 
 
     public void onBlogListReFetched() {
@@ -160,12 +157,14 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
     }
 
     @Override
-    public void onDestroyView() {
-        blogAdapter.removeCallback();
-        if (callback != null) {
-            callback.onBlogCallBackRemoved();
-            callback = null;
-        }
-        super.onDestroyView();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callback = (Interactor.Blog) context;
+    }
+
+    @Override
+    public void onDetach() {
+        callback = null;
+        super.onDetach();
     }
 }

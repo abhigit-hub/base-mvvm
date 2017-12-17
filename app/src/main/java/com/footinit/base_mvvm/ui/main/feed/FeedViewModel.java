@@ -70,7 +70,7 @@ public class FeedViewModel extends BaseViewModel
     private void retrieveBlogList() {
         showLoading();
         getCompositeDisposable().add(
-                getDataManager().getBlogList()
+                getDataManager().getBlogListObservable()
                         .subscribeOn(getSchedulerProvider().io())
                         .observeOn(getSchedulerProvider().ui())
                         .subscribe(blogList -> {
@@ -91,7 +91,7 @@ public class FeedViewModel extends BaseViewModel
     private void retrieveOpenSourceList(List<Object> list) {
         showLoading();
         getCompositeDisposable().add(
-                getDataManager().getOpenSourceList()
+                getDataManager().getOpenSourceListObservable()
                         .subscribeOn(getSchedulerProvider().io())
                         .observeOn(getSchedulerProvider().ui())
                         .subscribe(openSourceList -> {

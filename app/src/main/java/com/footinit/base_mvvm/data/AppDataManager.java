@@ -1,5 +1,6 @@
 package com.footinit.base_mvvm.data;
 
+import android.arch.lifecycle.LiveData;
 import android.content.Context;
 
 import com.footinit.base_mvvm.data.db.DbHelper;
@@ -75,8 +76,13 @@ public class AppDataManager implements DataManager {
     }
 
     @Override
-    public Observable<List<Blog>> getBlogList() {
+    public LiveData<List<Blog>> getBlogList() {
         return dbHelper.getBlogList();
+    }
+
+    @Override
+    public Observable<List<Blog>> getBlogListObservable() {
+        return dbHelper.getBlogListObservable();
     }
 
     @Override
@@ -103,8 +109,13 @@ public class AppDataManager implements DataManager {
     }
 
     @Override
-    public Observable<List<OpenSource>> getOpenSourceList() {
+    public LiveData<List<OpenSource>> getOpenSourceList() {
         return dbHelper.getOpenSourceList();
+    }
+
+    @Override
+    public Observable<List<OpenSource>> getOpenSourceListObservable() {
+        return dbHelper.getOpenSourceListObservable();
     }
 
     @Override

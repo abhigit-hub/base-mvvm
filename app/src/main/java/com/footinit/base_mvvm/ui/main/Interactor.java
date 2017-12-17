@@ -9,17 +9,13 @@ public interface Interactor {
     interface Blog {
         void onBlogListReFetched();
 
-        void onBlogCallBackAdded();
-
-        void onBlogCallBackRemoved();
+        void updateSwipeRefreshLayoutOne(boolean isVisible);
     }
 
 
     interface OpenSource {
         void onOpenSourceListReFetched();
 
-        void onOpenSourceCallBackAdded();
-
-        void onOpenSourceCallBackRemoved();
+        void updateSwipeRefreshLayoutTwo(boolean isVisible);
     }
 }

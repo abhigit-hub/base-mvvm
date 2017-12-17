@@ -1,5 +1,8 @@
 package com.footinit.base_mvvm.ui.main.opensource;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+
 import com.footinit.base_mvvm.R;
 import com.footinit.base_mvvm.data.DataManager;
 import com.footinit.base_mvvm.data.db.model.OpenSource;
@@ -22,8 +25,9 @@ import io.reactivex.functions.Consumer;
 public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
 
     //EVENT (transmit DATA)
-    private final SingleLiveEvent<List<OpenSource>> openSourceList = new SingleLiveEvent<>();
+    private LiveData<List<OpenSource>> openSourceList = new MutableLiveData<>();
     private final SingleLiveEvent<OpenSource> openOSDetailActivityEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Boolean> pullToRefreshEvent = new SingleLiveEvent<>();
     //EVENT
     private final SingleLiveEvent<Void> openSourceListReFetched = new SingleLiveEvent<>();
 
@@ -32,6 +36,8 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
                        SchedulerProvider schedulerProvider,
                        NetworkUtils networkUtils) {
         super(dataManager, schedulerProvider, networkUtils);
+
+        openSourceList = getDataManager().getOpenSourceList();
     }
 
 
@@ -39,15 +45,16 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
 * NAVIGATION
 * GETTERS for observing events from UI thread(i.e Activity)
 * */
-    public SingleLiveEvent<List<OpenSource>> getOpenSourceList() {
-        if (openSourceList.getValue() == null) {
-            openSourceList.setValue(new ArrayList<>());
-        }
+    public LiveData<List<OpenSource>> getOpenSourceList() {
         return openSourceList;
     }
 
     public SingleLiveEvent<OpenSource> getOpenOSDetailActivityEvent() {
         return openOSDetailActivityEvent;
+    }
+
+    public SingleLiveEvent<Boolean> getPullToRefreshEvent() {
+        return pullToRefreshEvent;
     }
 
     public SingleLiveEvent<Void> getOpenSourceListReFetched() {
@@ -59,23 +66,13 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
     * NAVIGATION
     * Commands to update Events, which are observed from UI thread
     * */
-    public void onUpdateOSList(List<OpenSource> list) {
-        if (this.openSourceList.getValue() != null) {
-            this.openSourceList.getValue().clear();
-            this.openSourceList.getValue().addAll(list);
-            this.openSourceList.setValue(this.openSourceList.getValue());
-        }
-    }
-
-    public void onAddToOSList(List<OpenSource> list) {
-        if (this.openSourceList.getValue() != null) {
-            this.openSourceList.getValue().addAll(list);
-            this.openSourceList.setValue(this.openSourceList.getValue());
-        }
-    }
 
     private void onOpenOSDetailActivity(OpenSource openSource) {
         openOSDetailActivityEvent.setValue(openSource);
+    }
+
+    private void onPullToRefreshEvent(boolean status) {
+        pullToRefreshEvent.setValue(status);
     }
 
     private void onOSListReFetched() {
@@ -86,6 +83,7 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
     public void fetchOpenSourceList() {
         if (isInternet()) {
             showLoading();
+            onPullToRefreshEvent(true);
             getCompositeDisposable().add(
                     getDataManager().doOpenSourceListCall()
                             .subscribeOn(getSchedulerProvider().io())
@@ -94,8 +92,8 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
                                 @Override
                                 public void accept(List<OpenSource> list) throws Exception {
                                     hideLoading();
+                                    onPullToRefreshEvent(false);
                                     if (list != null) {
-                                        onAddToOSList(list);
                                         clearOSListFromDb(list);
                                     }
                                 }
@@ -103,37 +101,14 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
                                 @Override
                                 public void accept(Throwable throwable) throws Exception {
                                     hideLoading();
+                                    onPullToRefreshEvent(false);
                                     showSnackbarMessage(R.string.could_not_fetch_items);
-                                    showPersistentData();
                                 }
                             })
             );
         } else {
-            showPersistentData();
+            showSnackbarMessage(R.string.no_internet);
         }
-    }
-
-
-    private void showPersistentData() {
-        getCompositeDisposable().add(
-                getDataManager().getOpenSourceList()
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<List<OpenSource>>() {
-                            @Override
-                            public void accept(List<OpenSource> list) throws Exception {
-                                if (list != null) {
-                                    onAddToOSList(list);
-                                }
-                                showSnackbarMessage(R.string.showing_stale_items);
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                showSnackbarMessage(R.string.could_not_fetch_items);
-                            }
-                        })
-        );
     }
 
 

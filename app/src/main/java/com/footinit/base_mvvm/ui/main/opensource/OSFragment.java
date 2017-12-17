@@ -3,6 +3,7 @@ package com.footinit.base_mvvm.ui.main.opensource;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -58,11 +59,6 @@ public class OSFragment extends BaseFragment<OSViewModel> {
         return fragment;
     }
 
-    public void setParentCallBack(Interactor.OpenSource callback) {
-        this.callback = callback;
-        this.callback.onOpenSourceCallBackAdded();
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -114,6 +110,15 @@ public class OSFragment extends BaseFragment<OSViewModel> {
                     }
                 });
 
+        osViewModel.getPullToRefreshEvent().observe(this,
+                new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(@Nullable Boolean isVisible) {
+                        if (callback != null)
+                            callback.updateSwipeRefreshLayoutTwo(isVisible);
+                    }
+                });
+
         osViewModel.getOpenSourceListReFetched().observe(this,
                 new Observer<Void>() {
                     @Override
@@ -125,14 +130,9 @@ public class OSFragment extends BaseFragment<OSViewModel> {
 
 
     private void updateOSAdapter(List<OpenSource> openSourceList) {
-        osAdapter.updateListItems (openSourceList);
+        osAdapter.updateListItems(openSourceList);
     }
 
-
-    //This method call comes in from MainActivity
-    public void updateOSList(List<OpenSource> openSourceList) {
-        osViewModel.onUpdateOSList(openSourceList);
-    }
 
     //This method call comes in from MainActivity
     public void setListScrollTop() {
@@ -143,8 +143,6 @@ public class OSFragment extends BaseFragment<OSViewModel> {
     public void onParentCallToFetchList() {
         osViewModel.fetchOpenSourceList();
     }
-
-
 
 
     public void onOSListReFetched() {
@@ -160,12 +158,14 @@ public class OSFragment extends BaseFragment<OSViewModel> {
     }
 
     @Override
-    public void onDestroyView() {
-        osAdapter.removeCallback();
-        if (callback != null) {
-            callback.onOpenSourceCallBackRemoved();
-            callback = null;
-        }
-        super.onDestroyView();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callback = (Interactor.OpenSource) context;
+    }
+
+    @Override
+    public void onDetach() {
+        callback = null;
+        super.onDetach();
     }
 }

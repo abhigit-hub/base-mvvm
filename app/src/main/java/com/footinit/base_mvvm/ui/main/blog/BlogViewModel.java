@@ -1,5 +1,8 @@
 package com.footinit.base_mvvm.ui.main.blog;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+
 import com.footinit.base_mvvm.R;
 import com.footinit.base_mvvm.data.DataManager;
 import com.footinit.base_mvvm.data.db.model.Blog;
@@ -22,8 +25,10 @@ import io.reactivex.functions.Consumer;
 public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback {
 
     //EVENT (transmit DATA)
-    private final SingleLiveEvent<List<Blog>> blogList = new SingleLiveEvent<>();
+    private LiveData<List<Blog>> blogList = new MutableLiveData<>();
     private final SingleLiveEvent<Blog> openBlogDetailActivity = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Boolean> pullToRefreshEvent = new SingleLiveEvent<>();
+
     //EVENT
     private final SingleLiveEvent<Void> blogListReFetched = new SingleLiveEvent<>();
 
@@ -32,6 +37,8 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
                          SchedulerProvider schedulerProvider,
                          NetworkUtils networkUtils) {
         super(dataManager, schedulerProvider, networkUtils);
+
+        blogList = getDataManager().getBlogList();
     }
 
 
@@ -39,15 +46,16 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
     * NAVIGATION
     * GETTERS for observing events from UI thread(i.e Activity)
     * */
-    public SingleLiveEvent<List<Blog>> getBlogList() {
-        if (blogList.getValue() == null) {
-            blogList.setValue(new ArrayList<>());
-        }
+    public LiveData<List<Blog>> getBlogList() {
         return blogList;
     }
 
     public SingleLiveEvent<Blog> getOpenBlogDetailActivity() {
         return openBlogDetailActivity;
+    }
+
+    public SingleLiveEvent<Boolean> getPullToRefreshEvent() {
+        return pullToRefreshEvent;
     }
 
     public SingleLiveEvent<Void> getBlogListReFetched() {
@@ -59,23 +67,13 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
     * NAVIGATION
     * Commands to update Events, which are observed from UI thread
     * */
-    public void onUpdateBlogList(List<Blog> blogList) {
-        if (this.blogList.getValue() != null) {
-            this.blogList.getValue().clear();
-            this.blogList.getValue().addAll(blogList);
-            this.blogList.setValue(this.blogList.getValue());
-        }
-    }
-
-    public void onAddToBlogList(List<Blog> blogList) {
-        if (this.blogList.getValue() != null) {
-            this.blogList.getValue().addAll(blogList);
-            this.blogList.setValue(this.blogList.getValue());
-        }
-    }
 
     private void onOpenBlogDetailActivity(Blog blog) {
         openBlogDetailActivity.setValue(blog);
+    }
+
+    private void onPullToRefreshEvent(boolean status) {
+        pullToRefreshEvent.setValue(status);
     }
 
     private void onBlogListReFetched() {
@@ -87,6 +85,7 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
     public void fetchBlogList() {
         if (isInternet()) {
             showLoading();
+            onPullToRefreshEvent(true);
             getCompositeDisposable().add(
                     getDataManager().doBlogListApiCall()
                             .subscribeOn(getSchedulerProvider().io())
@@ -95,8 +94,8 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
                                 @Override
                                 public void accept(List<Blog> blogList) throws Exception {
                                     hideLoading();
+                                    onPullToRefreshEvent(false);
                                     if (blogList != null) {
-                                        onAddToBlogList(blogList);
                                         clearBlogListFromDb(blogList);
                                     }
                                 }
@@ -104,37 +103,14 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
                                 @Override
                                 public void accept(Throwable throwable) throws Exception {
                                     hideLoading();
+                                    onPullToRefreshEvent(false);
                                     showSnackbarMessage(R.string.could_not_fetch_items);
-                                    showPersistentData();
                                 }
                             })
             );
         } else {
-            showPersistentData();
+            showSnackbarMessage(R.string.no_internet);
         }
-    }
-
-
-    private void showPersistentData() {
-        getCompositeDisposable().add(
-                getDataManager().getBlogList()
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<List<Blog>>() {
-                            @Override
-                            public void accept(List<Blog> blogList) throws Exception {
-                                if (blogList != null) {
-                                    onAddToBlogList(blogList);
-                                }
-                                showSnackbarMessage(R.string.showing_stale_items);
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                showSnackbarMessage(R.string.could_not_fetch_items);
-                            }
-                        })
-        );
     }
 
 

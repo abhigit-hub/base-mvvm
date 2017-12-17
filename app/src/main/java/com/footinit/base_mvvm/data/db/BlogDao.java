@@ -1,5 +1,6 @@
 package com.footinit.base_mvvm.data.db;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
@@ -22,7 +23,10 @@ public interface BlogDao {
     List<Long> insertBlogList(List<Blog> blogList);
 
     @Query("SELECT * FROM blog")
-    List<Blog> getBlogList();
+    LiveData<List<Blog>> getBlogList();
+
+    @Query("SELECT * FROM blog")
+    List<Blog> getBlogListObservable();
 
     @Query("SELECT COUNT(id) FROM blog")
     Long getRecordsCount();
