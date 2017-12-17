@@ -109,6 +109,7 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
                             })
             );
         } else {
+            onPullToRefreshEvent(false);
             showSnackbarMessage(R.string.no_internet);
         }
     }

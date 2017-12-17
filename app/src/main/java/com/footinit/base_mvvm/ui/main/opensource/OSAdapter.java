@@ -39,6 +39,10 @@ public class OSAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         this.callback = callback;
     }
 
+    void removeCallback() {
+        callback = null;
+    }
+
     @Override
     public BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
@@ -74,16 +78,14 @@ public class OSAdapter extends RecyclerView.Adapter<BaseViewHolder> {
     }
 
     /*
+    * Update the current list to an assigned list
+    *
     * This update method is called every time the list item has to be updated.
     * Previous List must be cleared to store new list, to avoid duplicates*/
     public void updateListItems(List<OpenSource> openSourceList) {
         this.openSourceList.clear();
         this.openSourceList.addAll(openSourceList);
         notifyDataSetChanged();
-    }
-
-    void removeCallback() {
-        callback = null;
     }
 
     public interface Callback {

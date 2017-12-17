@@ -107,6 +107,7 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
                             })
             );
         } else {
+            onPullToRefreshEvent(false);
             showSnackbarMessage(R.string.no_internet);
         }
     }

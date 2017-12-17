@@ -41,6 +41,10 @@ public class BlogAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         this.callback = callback;
     }
 
+    void removeCallback() {
+        callback = null;
+    }
+
     @Override
     public BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
@@ -68,6 +72,7 @@ public class BlogAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         else return VIEW_TYPE_EMPTY;
     }
 
+
     @Override
     public int getItemCount() {
 
@@ -76,18 +81,15 @@ public class BlogAdapter extends RecyclerView.Adapter<BaseViewHolder> {
         else return 1;
     }
 
-
     /*
+    * Update the current list to an assigned list
+    *
     * This update method is called every time the list item has to be updated.
     * Previous List must be cleared to store new list, to avoid duplicates*/
     public void updateListItems(List<Blog> blogList) {
         this.blogList.clear();
         this.blogList.addAll(blogList);
         notifyDataSetChanged();
-    }
-
-    void removeCallback() {
-        callback = null;
     }
 
 

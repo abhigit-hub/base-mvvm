@@ -166,6 +166,7 @@ public class OSFragment extends BaseFragment<OSViewModel> {
     @Override
     public void onDetach() {
         callback = null;
+        osAdapter.removeCallback();
         super.onDetach();
     }
 }

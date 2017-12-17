@@ -165,6 +165,7 @@ public class BlogFragment extends BaseFragment<BlogViewModel> {
     @Override
     public void onDetach() {
         callback = null;
+        blogAdapter.removeCallback();
         super.onDetach();
     }
 }

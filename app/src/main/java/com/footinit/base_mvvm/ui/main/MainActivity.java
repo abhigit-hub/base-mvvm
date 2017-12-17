@@ -51,9 +51,7 @@ import dagger.android.support.HasSupportFragmentInjector;
 public class MainActivity extends BaseActivity<MainViewModel>
         implements Interactor.Blog, Interactor.OpenSource, HasSupportFragmentInjector {
 
-    private boolean isCallbackSet = false;
-
-    private boolean blogRefreshFlag, openSourceRefreshFlag;
+    private boolean blogRefreshFlag = true, openSourceRefreshFlag = true;
 
     private Menu menu;
 
@@ -218,6 +216,7 @@ public class MainActivity extends BaseActivity<MainViewModel>
             updateSwipeRefreshLayout(false);
             resetAllAdapterPositions();
             showToast(getString(R.string.updated_items));
+            blogRefreshFlag = true; openSourceRefreshFlag = true;
         } else {
             updateSwipeRefreshLayout(true);
         }
