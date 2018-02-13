@@ -48,8 +48,8 @@ public class AppDataManager implements DataManager {
 
     //DB:USER
     @Override
-    public Observable<Long> insertUser(User user) {
-        return dbHelper.insertUser(user);
+    public Observable<Long> saveUser(User user) {
+        return dbHelper.saveUser(user);
     }
 
     @Override

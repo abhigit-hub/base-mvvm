@@ -18,7 +18,7 @@ import io.reactivex.Observable;
 public interface DbHelper {
 
     //User
-    Observable<Long> insertUser(User user);
+    Observable<Long> saveUser(User user);
 
     Observable<User> getCurrentUser();
 

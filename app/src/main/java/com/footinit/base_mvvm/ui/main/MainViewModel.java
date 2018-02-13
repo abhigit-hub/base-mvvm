@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.CompletableObserver;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -64,7 +65,6 @@ public class MainViewModel extends BaseViewModel {
     }
 
 
-
     /*
     * NAVIGATION
     * Commands to update Events, which are observed from UI thread
@@ -98,43 +98,18 @@ public class MainViewModel extends BaseViewModel {
         checkFeedAvailableInDb();
     }
 
-
     private void checkFeedAvailableInDb() {
         showLoading();
 
         getCompositeDisposable().add(
-                getDataManager().getBlogRecordCount()
+                Observable.zip(
+                        getDataManager().getBlogRecordCount(),
+                        getDataManager().getOpenSourceRecordCount(),
+                        (aLong, aLong2) -> aLong > 0 || aLong2 > 0)
                         .subscribeOn(getSchedulerProvider().io())
                         .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<Long>() {
-                            @Override
-                            public void accept(Long aLong) throws Exception {
-                                if (aLong > 0) {
-                                    hideLoading();
-                                    onOpenFeedActivityEvent();
-                                } else {
-                                    hideLoading();
-                                    checkFeedAvailableInOpenSourceDb();
-                                }
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                hideLoading();
-                                checkFeedAvailableInOpenSourceDb();
-                            }
-                        })
-        );
-    }
-
-    private void checkFeedAvailableInOpenSourceDb() {
-        showLoading();
-        getCompositeDisposable().add(
-                getDataManager().getOpenSourceRecordCount()
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe((Consumer<Long>) aLong -> {
-                            if (aLong > 0) {
+                        .subscribe(aBoolean -> {
+                            if (aBoolean) {
                                 hideLoading();
                                 onOpenFeedActivityEvent();
                             } else {

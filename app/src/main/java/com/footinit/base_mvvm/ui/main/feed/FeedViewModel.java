@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Observable;
+
 /**
  * Created by Abhijit on 10-12-2017.
  */
@@ -64,53 +66,36 @@ public class FeedViewModel extends BaseViewModel
     }
 
     public void onViewPrepared() {
-        retrieveBlogList();
+        retrieveAllList();
     }
 
-    private void retrieveBlogList() {
+    private void retrieveAllList() {
         showLoading();
-        getCompositeDisposable().add(
-                getDataManager().getBlogListObservable()
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe(blogList -> {
-                            hideLoading();
-                            if (blogList != null) {
-                                ArrayList<Object> list = new ArrayList<>();
-                                list.addAll(blogList);
-                                retrieveOpenSourceList(list);
-                            }
 
-                        }, throwable -> {
-                            hideLoading();
-                            retrieveOpenSourceList(new ArrayList<Object>());
+        getCompositeDisposable().add(
+                Observable.zip(getDataManager().getBlogListObservable(),
+                        getDataManager().getOpenSourceListObservable(),
+                        (t1, t2) -> {
+                            List<Object> list = new ArrayList<>();
+
+                            if (t1 != null && t1.size() > 0) list.addAll(t1);
+                            if (t2 != null && t2.size() > 0) list.addAll(t2);
+                            return list;
                         })
-        );
-    }
-
-    private void retrieveOpenSourceList(List<Object> list) {
-        showLoading();
-        getCompositeDisposable().add(
-                getDataManager().getOpenSourceListObservable()
                         .subscribeOn(getSchedulerProvider().io())
                         .observeOn(getSchedulerProvider().ui())
-                        .subscribe(openSourceList -> {
+                        .subscribe(objectList -> {
                             hideLoading();
-                            if (openSourceList != null) {
-                                list.addAll(openSourceList);
-                                Collections.shuffle(list);
-                                onUpdateList(list);
+                            if (objectList != null && objectList.size() > 0) {
+                                Collections.shuffle(objectList);
+                                onUpdateList(objectList);
                             }
                         }, throwable -> {
                             hideLoading();
                             showSnackbarMessage(R.string.something_went_wrong);
-
-                            if (list != null && list.size() > 0)
-                                onUpdateList(list);
                         })
         );
     }
-
 
     @Override
     public void onBlogItemClicked(Blog blog) {

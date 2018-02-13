@@ -7,6 +7,7 @@ import com.footinit.base_mvvm.R;
 import com.footinit.base_mvvm.data.DataManager;
 import com.footinit.base_mvvm.data.db.model.Blog;
 import com.footinit.base_mvvm.ui.base.BaseViewModel;
+import com.footinit.base_mvvm.utils.AppLogger;
 import com.footinit.base_mvvm.utils.NetworkUtils;
 import com.footinit.base_mvvm.utils.interactors.SingleLiveEvent;
 import com.footinit.base_mvvm.utils.rx.SchedulerProvider;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.CompletableObserver;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -81,79 +83,32 @@ public class BlogViewModel extends BaseViewModel implements BlogAdapter.Callback
     }
 
 
-
     public void fetchBlogList() {
         if (isInternet()) {
             showLoading();
             onPullToRefreshEvent(true);
+
             getCompositeDisposable().add(
                     getDataManager().doBlogListApiCall()
+                            .flatMap(blogs -> Observable.concat(
+                                    getDataManager().wipeBlogData().subscribeOn(getSchedulerProvider().io()).toObservable(),
+                                    getDataManager().insertBlogList(blogs).subscribeOn(getSchedulerProvider().io()))
+                                    .doOnError(throwable -> AppLogger.e(throwable, BlogViewModel.class.getSimpleName())))
                             .subscribeOn(getSchedulerProvider().io())
                             .observeOn(getSchedulerProvider().ui())
-                            .subscribe(new Consumer<List<Blog>>() {
-                                @Override
-                                public void accept(List<Blog> blogList) throws Exception {
-                                    hideLoading();
-                                    onPullToRefreshEvent(false);
-                                    if (blogList != null) {
-                                        clearBlogListFromDb(blogList);
-                                    }
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    hideLoading();
-                                    onPullToRefreshEvent(false);
-                                    showSnackbarMessage(R.string.could_not_fetch_items);
-                                }
+                            .subscribe(blogs -> {
+                                hideLoading();
+                                onPullToRefreshEvent(false);
+                            }, throwable -> {
+                                hideLoading();
+                                onPullToRefreshEvent(false);
+                                showSnackbarMessage(R.string.could_not_fetch_items);
                             })
             );
         } else {
             onPullToRefreshEvent(false);
             showSnackbarMessage(R.string.no_internet);
         }
-    }
-
-
-    private void clearBlogListFromDb(List<Blog> blogList) {
-
-        getDataManager().wipeBlogData()
-                .subscribeOn(getSchedulerProvider().io())
-                .observeOn(getSchedulerProvider().ui())
-                .subscribe(new CompletableObserver() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        addBlogListToDb(blogList);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-                });
-    }
-
-    private void addBlogListToDb(List<Blog> blogList) {
-        getCompositeDisposable().add(
-                getDataManager().insertBlogList(blogList)
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<List<Long>>() {
-                            @Override
-                            public void accept(List<Long> longs) throws Exception {
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-
-                            }
-                        })
-        );
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.Task;
 import org.json.JSONObject;
 
 
+import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
 import timber.log.Timber;
 
@@ -33,7 +34,6 @@ public class LoginViewModel extends BaseViewModel {
 
     private final SingleLiveEvent<Void> openMainActivityEvent = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> openGoogleSignInActivityEvent = new SingleLiveEvent<>();
-
 
 
     public LoginViewModel(DataManager dataManager,
@@ -70,7 +70,6 @@ public class LoginViewModel extends BaseViewModel {
     }
 
 
-
     //SERVER
     /*
     *
@@ -99,26 +98,23 @@ public class LoginViewModel extends BaseViewModel {
             showLoading();
             getCompositeDisposable().add(
                     getDataManager().doServerLoginApiCall(new LoginRequest.ServerLoginRequest(email, password))
+                            .concatMap(user -> getDataManager().saveUser(user)
+                                    .ignoreElements()
+                                    .andThen(Observable.just(user)))
                             .subscribeOn(getSchedulerProvider().io())
                             .observeOn(getSchedulerProvider().ui())
-                            .subscribe(new Consumer<User>() {
-                                @Override
-                                public void accept(User user) throws Exception {
-                                    insertCurrentUserIntoDb(user);
-                                    getDataManager().updateUserInfoInPrefs(user.getUserID(),
-                                            user.getUserName(),
-                                            user.getEmail(),
-                                            DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_SERVER);
+                            .subscribe(user -> {
+                                getDataManager().updateUserInfoInPrefs(user.getUserID(),
+                                        user.getUserName(),
+                                        user.getEmail(),
+                                        DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_SERVER);
 
-                                    hideLoading();
-                                    showToastMessage(R.string.signing_in);
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    hideLoading();
-                                    showToastMessage(R.string.server_sign_in_failed);
-                                }
+                                hideLoading();
+                                showToastMessage(R.string.signing_in);
+                                onOpenMainActivityEvent();
+                            }, throwable -> {
+                                hideLoading();
+                                showToastMessage(R.string.server_sign_in_failed);
                             })
             );
         }
@@ -151,17 +147,16 @@ public class LoginViewModel extends BaseViewModel {
     private void onGoogleLoginSuccessful(GoogleSignInAccount account) {
         showToastMessage(R.string.google_sign_in_successful);
 
-        insertCurrentUserIntoDb(
-                new User(
-                        (CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_GOOGLE.getType())),
-                        account.getDisplayName(),
-                        account.getEmail())
-        );
+        long id = CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_GOOGLE.getType());
+        String name = account.getDisplayName();
+        String email = account.getEmail();
+
+        insertCurrentUserIntoDb(new User(id, name, email));
 
         getDataManager().updateUserInfoInPrefs(
-                CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_GOOGLE.getType()),
-                account.getDisplayName(),
-                account.getEmail(),
+                id,
+                name,
+                email,
                 DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_GOOGLE);
     }
 
@@ -196,17 +191,14 @@ public class LoginViewModel extends BaseViewModel {
 
         String email = object.optString("email");
         if (email == null) email = " ";
+        long id = CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_FB.getType());
+        String name = profile.getName();
 
-        insertCurrentUserIntoDb(
-                new User(
-                        (CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_FB.getType())),
-                        profile.getName(),
-                        email)
-        );
+        insertCurrentUserIntoDb(new User(id, name, email));
 
         getDataManager().updateUserInfoInPrefs(
-                CommonUtils.getNegativeLong(DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_FB.getType()),
-                profile.getName(),
+                id,
+                name,
                 email,
                 DataManager.LoggedInMode.LOGGED_IN_MODE_LOGGED_FB);
     }
@@ -217,21 +209,15 @@ public class LoginViewModel extends BaseViewModel {
         showLoading();
 
         getCompositeDisposable().add(
-                getDataManager().insertUser(user)
+                getDataManager().saveUser(user)
                         .subscribeOn(getSchedulerProvider().io())
                         .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<Long>() {
-                            @Override
-                            public void accept(Long aLong) throws Exception {
-                                hideLoading();
-                                onOpenMainActivityEvent();
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-                                showLoading();
-                                showSnackbarMessage(R.string.cannnot_initiate_sign_in);
-                            }
+                        .subscribe(aLong -> {
+                            hideLoading();
+                            onOpenMainActivityEvent();
+                        }, throwable -> {
+                            showLoading();
+                            showSnackbarMessage(R.string.cannnot_initiate_sign_in);
                         })
         );
     }

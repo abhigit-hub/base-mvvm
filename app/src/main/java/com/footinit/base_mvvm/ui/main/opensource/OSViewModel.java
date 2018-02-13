@@ -7,6 +7,7 @@ import com.footinit.base_mvvm.R;
 import com.footinit.base_mvvm.data.DataManager;
 import com.footinit.base_mvvm.data.db.model.OpenSource;
 import com.footinit.base_mvvm.ui.base.BaseViewModel;
+import com.footinit.base_mvvm.utils.AppLogger;
 import com.footinit.base_mvvm.utils.NetworkUtils;
 import com.footinit.base_mvvm.utils.interactors.SingleLiveEvent;
 import com.footinit.base_mvvm.utils.rx.SchedulerProvider;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.CompletableObserver;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -79,31 +81,26 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
         openSourceListReFetched.call();
     }
 
-
     public void fetchOpenSourceList() {
         if (isInternet()) {
             showLoading();
             onPullToRefreshEvent(true);
+
             getCompositeDisposable().add(
                     getDataManager().doOpenSourceListCall()
+                            .flatMap(openSources -> Observable.concat(
+                                    getDataManager().wipeOpenSourceData().subscribeOn(getSchedulerProvider().io()).toObservable(),
+                                    getDataManager().insertOpenSourceList(openSources).subscribeOn(getSchedulerProvider().io()))
+                                    .doOnError(throwable -> AppLogger.e(throwable, OSViewModel.class.getSimpleName())))
                             .subscribeOn(getSchedulerProvider().io())
                             .observeOn(getSchedulerProvider().ui())
-                            .subscribe(new Consumer<List<OpenSource>>() {
-                                @Override
-                                public void accept(List<OpenSource> list) throws Exception {
-                                    hideLoading();
-                                    onPullToRefreshEvent(false);
-                                    if (list != null) {
-                                        clearOSListFromDb(list);
-                                    }
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    hideLoading();
-                                    onPullToRefreshEvent(false);
-                                    showSnackbarMessage(R.string.could_not_fetch_items);
-                                }
+                            .subscribe(openSources -> {
+                                hideLoading();
+                                onPullToRefreshEvent(false);
+                            }, throwable -> {
+                                hideLoading();
+                                onPullToRefreshEvent(false);
+                                showSnackbarMessage(R.string.could_not_fetch_items);
                             })
             );
         } else {
@@ -111,49 +108,6 @@ public class OSViewModel extends BaseViewModel implements OSAdapter.Callback {
             showSnackbarMessage(R.string.no_internet);
         }
     }
-
-
-    private void clearOSListFromDb(List<OpenSource> openSourceList) {
-
-        getDataManager().wipeOpenSourceData()
-                .subscribeOn(getSchedulerProvider().io())
-                .observeOn(getSchedulerProvider().ui())
-                .subscribe(new CompletableObserver() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        addOSListToDb(openSourceList);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-                });
-    }
-
-    private void addOSListToDb(List<OpenSource> openSourceList) {
-        getCompositeDisposable().add(
-                getDataManager().insertOpenSourceList(openSourceList)
-                        .subscribeOn(getSchedulerProvider().io())
-                        .observeOn(getSchedulerProvider().ui())
-                        .subscribe(new Consumer<List<Long>>() {
-                            @Override
-                            public void accept(List<Long> longs) throws Exception {
-                            }
-                        }, new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Exception {
-
-                            }
-                        })
-        );
-    }
-
 
     @Override
     public void onOpenSourceEmptyRetryClicked() {
