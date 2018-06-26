@@ -61,7 +61,7 @@ public class SyncServiceTest extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         AppLogger.d(TAG, "SyncServiceTest started");
 
-        startSync();
+        //startSync();
 
         return START_NOT_STICKY;
     }
