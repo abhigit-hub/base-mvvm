@@ -73,6 +73,8 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".services.service.SyncServiceTest" />
+        <service android:name=".services.service.SyncService" />
     </application>
 
 </manifest>

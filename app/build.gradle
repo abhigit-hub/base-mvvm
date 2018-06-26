@@ -103,6 +103,9 @@ dependencies {
     compile "android.arch.lifecycle:extensions:$rootProject.lifecycle"
     annotationProcessor "android.arch.lifecycle:compiler:$rootProject.lifecycle"
 
+    //Evernote's Android-Job
+    implementation "com.evernote:android-job:$rootProject.androidJob"
+
     //Animation
     compile 'com.airbnb.android:lottie:2.2.5'
 

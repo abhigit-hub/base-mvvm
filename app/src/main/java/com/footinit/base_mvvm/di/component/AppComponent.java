@@ -5,7 +5,8 @@ import android.app.Application;
 import com.facebook.CallbackManager;
 import com.footinit.base_mvvm.MvvmApp;
 import com.footinit.base_mvvm.data.DataManager;
-import com.footinit.base_mvvm.di.builder.ActivityBuilder;
+import com.footinit.base_mvvm.di.builder.ActivityBuilderModule;
+import com.footinit.base_mvvm.di.builder.ServiceBuilderModule;
 import com.footinit.base_mvvm.di.module.AppModule;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 
@@ -20,7 +21,8 @@ import dagger.android.AndroidInjectionModule;
  */
 
 @Singleton
-@Component(modules = {AndroidInjectionModule.class, AppModule.class, ActivityBuilder.class})
+@Component(modules = {AndroidInjectionModule.class, AppModule.class,
+        ActivityBuilderModule.class, ServiceBuilderModule.class})
 public interface AppComponent {
 
     @Component.Builder

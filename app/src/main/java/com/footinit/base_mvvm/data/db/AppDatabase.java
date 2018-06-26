@@ -13,7 +13,7 @@ import javax.inject.Singleton;
  * Created by Abhijit on 11-11-2017.
  */
 
-@Database(entities = {User.class, Blog.class, OpenSource.class}, version = 1)
+@Database(entities = {User.class, Blog.class, OpenSource.class}, version = 1, exportSchema = false)
 @Singleton
 public abstract class AppDatabase extends RoomDatabase {
 

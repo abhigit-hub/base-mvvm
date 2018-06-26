@@ -10,6 +10,8 @@ import com.footinit.base_mvvm.R;
 import com.footinit.base_mvvm.data.DataManager;
 import com.footinit.base_mvvm.data.db.model.User;
 import com.footinit.base_mvvm.data.network.model.LoginRequest;
+import com.footinit.base_mvvm.services.jobs.SyncJob;
+import com.footinit.base_mvvm.services.jobs.SyncTestJob;
 import com.footinit.base_mvvm.ui.base.BaseViewModel;
 import com.footinit.base_mvvm.utils.CommonUtils;
 import com.footinit.base_mvvm.utils.NetworkUtils;
@@ -44,9 +46,9 @@ public class LoginViewModel extends BaseViewModel {
 
 
     /*
-    * NAVIGATION
-    * GETTERS for observing events from UI thread(i.e Activity)
-    * */
+     * NAVIGATION
+     * GETTERS for observing events from UI thread(i.e Activity)
+     * */
 
     public SingleLiveEvent<Void> getOpenMainActivityEvent() {
         return openMainActivityEvent;
@@ -57,9 +59,9 @@ public class LoginViewModel extends BaseViewModel {
     }
 
     /*
-    * NAVIGATION
-    * Commands to update Events, which are observed from UI thread
-    * */
+     * NAVIGATION
+     * Commands to update Events, which are observed from UI thread
+     * */
 
     private void onOpenMainActivityEvent() {
         openMainActivityEvent.call();
@@ -72,11 +74,11 @@ public class LoginViewModel extends BaseViewModel {
 
     //SERVER
     /*
-    *
-    * Login from Google and Facebook has negative id's for identification, Server has positive ID's
-    *
-    * Based on the ID's, we can deduce the form of Login
-    * */
+     *
+     * Login from Google and Facebook has negative id's for identification, Server has positive ID's
+     *
+     * Based on the ID's, we can deduce the form of Login
+     * */
     public void onServerLoginClicked(String email, String password) {
 
 
@@ -94,6 +96,12 @@ public class LoginViewModel extends BaseViewModel {
                 return;
             }
 
+            /*
+             * Jobs to schedule services. To showcases usages of composite disposable
+             * and Inject annotations in Service.
+             * */
+            SyncJob.scheduleJob();
+            SyncTestJob.scheduleJob();
 
             showLoading();
             getCompositeDisposable().add(
@@ -139,11 +147,11 @@ public class LoginViewModel extends BaseViewModel {
     }
 
     /*
-    *
-    * Login from Google and Facebook has negative id's for identification, Server has positive ID's
-    *
-    * Based on the ID's, we can deduce the form of Login
-    * */
+     *
+     * Login from Google and Facebook has negative id's for identification, Server has positive ID's
+     *
+     * Based on the ID's, we can deduce the form of Login
+     * */
     private void onGoogleLoginSuccessful(GoogleSignInAccount account) {
         showToastMessage(R.string.google_sign_in_successful);
 
@@ -181,11 +189,11 @@ public class LoginViewModel extends BaseViewModel {
     }
 
     /*
-    *
-    * Login from Google and Facebook has negative id's for identification, Server has positive ID's
-    *
-    * Based on the ID's, we can deduce the form of Login
-    * */
+     *
+     * Login from Google and Facebook has negative id's for identification, Server has positive ID's
+     *
+     * Based on the ID's, we can deduce the form of Login
+     * */
     private void onFacebookLoginSuccessful(Profile profile, JSONObject object) {
         showToastMessage(R.string.facebook_sign_in_successful);
 
